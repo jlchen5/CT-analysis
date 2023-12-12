@@ -1,4 +1,4 @@
-# CT-in-cancer
+# CT analysis
 
 - Circuit Topology approach in Cancer research and Immune cells
 
