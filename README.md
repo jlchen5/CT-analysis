@@ -14,4 +14,14 @@
  
 - 4. The scRNA-seq data was analyzed with scHi-C data.
 
+- 5. We seperate the hic contact files to 2 files which `_1.bed` and `_2.bed`.The motif analysis is performed by [run_homer.sh](https://github.com/jlchen5/CT-analysis/blob/main/run_homer.sh).
+ 
+     ```bash
+     bash run_homer.sh
+     ```
+
+
+
+
+ 
 
