@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import networkx as nx
 import concurrent.futures
+import threading 
 
 # Assuming the 'functions.genome_topology' module is properly defined and accessible
 from functions.genome_topology import select_chrom, geom_distance, make_graph, fractal_dimension, get_matrix, normalize_psc
