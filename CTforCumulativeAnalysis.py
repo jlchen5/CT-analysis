@@ -2,21 +2,24 @@ import numpy as np
 import pandas as pd
 import os
 import networkx as nx
+import concurrent.futures
 
 # Assuming the 'functions.genome_topology' module is properly defined and accessible
 from functions.genome_topology import select_chrom, geom_distance, make_graph, fractal_dimension, get_matrix, normalize_psc
 
 cache = {}
+cache_lock = threading.Lock()  # Ensure thread safety when accessing the cache
 
 def cached_geom_distance(coord_cut, cutoff, neighbors):
     key = (tuple(coord_cut.flatten()), cutoff, neighbors)
     
-    if key in cache:
-        return cache[key]
-    else:
-        result = geom_distance(coord_cut, cutoff, neighbors)
-        cache[key] = result
-        return result
+    with cache_lock:  # Use lock to ensure thread-safe access to cache
+        if key in cache:
+            return cache[key]
+        else:
+            result = geom_distance(coord_cut, cutoff, neighbors)
+            cache[key] = result
+            return result
 
 def process_chromosome(parameters, path_data, resolution, chrom="a"):
     path_results, cell = parameters['path_results'], parameters['cell']
@@ -59,27 +62,33 @@ def process_chromosome(parameters, path_data, resolution, chrom="a"):
     
     return f"Processed {chrom} for {cell}"
 
-def analyze_cells(start_id=1, end_id=24, chrom="a"):
+def analyze_cell(cell_id, chrom="a"):
     r_cutoff = 1.0
     neighbours = 1
     resolution = 5
     start_from = 0
     base_path_data = '/Users/jialechen/Desktop/PhD/CT/Pang_2022_GenomeBiol_3D/data/pdb/Cell_ID-'
     path_results = '/Users/jialechen/Desktop/PhD/CT/Pang_2022_GenomeBiol_3D/results/cumulative analysis/'
-
-    for cell_id in range(start_id, end_id + 1):
-        formatted_cell_id = f"{cell_id:02}"  # Ensure the cell ID is properly formatted with leading zeros
-        path_data = f"{base_path_data}{formatted_cell_id}"
-        parameters = {
-            'cutoff': r_cutoff, 
-            'neighbors': neighbours, 
-            'resolution': resolution, 
-            'init': start_from, 
-            'path_results': path_results, 
-            'cell': f"Cell_ID-{formatted_cell_id}"
-        }
-        result = process_chromosome(parameters, path_data, resolution, chrom=chrom)
-        print(result)
+    
+    formatted_cell_id = f"{cell_id:02}"  # Ensure the cell ID is properly formatted with leading zeros
+    path_data = f"{base_path_data}{formatted_cell_id}"
+    parameters = {
+        'cutoff': r_cutoff, 
+        'neighbors': neighbours, 
+        'resolution': resolution, 
+        'init': start_from, 
+        'path_results': path_results, 
+        'cell': f"Cell_ID-{formatted_cell_id}"
+    }
+    result = process_chromosome(parameters, path_data, resolution, chrom=chrom)
+    print(result)
 
 if __name__ == "__main__":
-    analyze_cells()  # Call the function to start processing
+    start_id = 1
+    end_id = 24
+    chrom = "a"
+    
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [executor.submit(analyze_cell, cell_id, chrom) for cell_id in range(start_id, end_id + 1)]
+        for future in concurrent.futures.as_completed(futures):
+            print(future.result())
