@@ -1,58 +1,61 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Mar 11 15:16:05 2021
+Modified on Web Apr 3 2024
 
-@author: scalvinib
+@author: Jiale
 """
 #functions for topological analysis of genome
 
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
-
+import os
 
 
 
 
 #read the pdb
 def open_pdb(ID_chr, path):
-    file_string= '{}/chrom{}.pdb'.format(path, ID_chr)
-    #print(file_string)
-    pdb = open(file_string, "r")
-    ind=0
-    for line in pdb:
-        if ind < 0:
-            print(line)
-        else:
-            break
-        ind= ind+1 
-        
-    return pdb 
+    if not ID_chr.endswith('.pdb'):
+        ID_chr += '.pdb'
+    file_string = os.path.join(path, ID_chr)
+    try:
+        pdb = open(file_string, "r")
+        return pdb
+    except FileNotFoundError:
+        print(f"File not found: {file_string}")
+        # Handle the error appropriately
+
 
 
 #retrieve coordinates of the chosen chromosome
 def select_chrom(chrom, path):
-    chr_vec=np.array(['chr a', 'chr b', 'chr c','chr d', 'chr e', 'chr f', 
-    'chr g', 'chr h', 'chr i', 'chr j', 'chr k', 'chr l','chr m', 'chr n',
-    'chr o', 'chr p', 'chr q', 'chr r', 'chr s', 'chr t', 'chr u', 'chr v',
-    'chr w', 'chr x', 'chr y'])      
-    ID_chr=chr_vec[chrom][4]
-    pdb=open_pdb(ID_chr, path)
-    counter=0
-    coord=[]
-    for line in pdb:        
-        if (line[17:22] != chr_vec[chrom]):
-             break
-        x=float(line[31:38])
-        y=float(line[39:46])
-        z=float(line[47:54])
-        coord.append([x,y,z])
-        counter= counter +1
-    pdb.close()     
-    coord=np.array(coord)
-    
-    
-    return counter, coord 
+    chr_vec = np.array(['chr a', 'chr b', 'chr c', 'chr d', 'chr e', 'chr f', 
+                        'chr g', 'chr h', 'chr i', 'chr j', 'chr k', 'chr l', 
+                        'chr m', 'chr n', 'chr o', 'chr p', 'chr q', 'chr r', 
+                        'chr s', 'chr t', 'chr u', 'chr v', 'chr w', 'chr x', 
+                        'chr y'])
+    # Convert the chrom string into the format used within your PDB files
+    ID_chr = 'chr ' + chrom  # Corrected to match the identifier within the file
+    # Ensure you're opening the correct file; the filename uses an underscore
+    pdb_filename = f"chr_{chrom}.pdb"  # Assuming your file naming convention
+    pdb = open_pdb(pdb_filename, path)
+    counter = 0
+    coord = []
+    for line in pdb:
+        # This condition checks the identifier in the file, adjusted to match your PDB format
+        if line[17:22].strip() != ID_chr:
+            continue  # Use continue instead of break to process the entire file
+        x = float(line[31:38])
+        y = float(line[39:46])
+        z = float(line[47:54])
+        coord.append([x, y, z])
+        counter += 1
+    pdb.close()
+    coord = np.array(coord)
+    return counter, coord
+
 
 
 #finds contacts in the chromosome based on geometrical distance
