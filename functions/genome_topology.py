@@ -16,37 +16,29 @@ import os
 
 
 #read the pdb
-def open_pdb(ID_chr, path):
-    if not ID_chr.endswith('.pdb'):
-        ID_chr += '.pdb'
-    file_string = os.path.join(path, ID_chr)
+def open_pdb(filename, path):
+    full_path = os.path.join(path, filename)
+    print(f"Trying to open: {full_path}")  # Debugging print
     try:
-        pdb = open(file_string, "r")
-        return pdb
+        return open(full_path, 'r')
     except FileNotFoundError:
-        print(f"File not found: {file_string}")
-        # Handle the error appropriately
+        print(f"Could not find the file at {full_path}")  # Error print
+        raise FileNotFoundError(f"Could not find the file at {full_path}")
+
 
 
 
 #retrieve coordinates of the chosen chromosome
 def select_chrom(chrom, path):
-    chr_vec = np.array(['chr a', 'chr b', 'chr c', 'chr d', 'chr e', 'chr f', 
-                        'chr g', 'chr h', 'chr i', 'chr j', 'chr k', 'chr l', 
-                        'chr m', 'chr n', 'chr o', 'chr p', 'chr q', 'chr r', 
-                        'chr s', 'chr t', 'chr u', 'chr v', 'chr w', 'chr x', 
-                        'chr y'])
-    # Convert the chrom string into the format used within your PDB files
-    ID_chr = 'chr ' + chrom  # Corrected to match the identifier within the file
-    # Ensure you're opening the correct file; the filename uses an underscore
-    pdb_filename = f"chr_{chrom}.pdb"  # Assuming your file naming convention
+    ID_chr = 'chr ' + chrom
+    pdb_filename = f"chr_{chrom}.pdb"
+    print(f"Accessing: {path}/{pdb_filename}")  # Debugging print
     pdb = open_pdb(pdb_filename, path)
     counter = 0
     coord = []
     for line in pdb:
-        # This condition checks the identifier in the file, adjusted to match your PDB format
         if line[17:22].strip() != ID_chr:
-            continue  # Use continue instead of break to process the entire file
+            continue
         x = float(line[31:38])
         y = float(line[39:46])
         z = float(line[47:54])
