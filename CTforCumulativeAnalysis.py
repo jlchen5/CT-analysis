@@ -1,95 +1,87 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Nov 19 10:10:23 2021
+
+@author: scalvinib
+"""
+
+
 import numpy as np
-import pandas as pd
-import os
+import matplotlib.pyplot as plt
+import PIL.Image
 import networkx as nx
-import concurrent.futures
-import threading 
+import pandas as pd
+import string
 
-# Assuming the 'functions.genome_topology' module is properly defined and accessible
-from functions.genome_topology import select_chrom, geom_distance, make_graph, fractal_dimension, get_matrix, normalize_psc
+from functions.genome_topology import open_pdb
+from functions.genome_topology import select_chrom
+from functions.genome_topology import geom_distance
+from functions.genome_topology import make_graph
+from functions.genome_topology import fractal_dimension
+from functions.genome_topology import get_matrix
+from functions.genome_topology import normalize_psc
 
-cache = {}
-cache_lock = threading.Lock()  # Ensure thread safety when accessing the cache
 
-def cached_geom_distance(coord_cut, cutoff, neighbors):
-    key = (tuple(coord_cut.flatten()), cutoff, neighbors)
+
+def main(parameters, path_data,path_results):
+    letters=list(string.ascii_lowercase)
+    chr_vec=['chr {}'.format(letter) for letter in letters[:n_all_chr]]
+    cell=path_data[-10:] 
+    print("Analyzing cell:  {}".format(cell))
     
-    with cache_lock:  # Use lock to ensure thread-safe access to cache
-        if key in cache:
-            return cache[key]
-        else:
-            result = geom_distance(coord_cut, cutoff, neighbors)
-            cache[key] = result
-            return result
-
-def process_chromosome(parameters, path_data, resolution, chrom="a"):
-    path_results, cell = parameters['path_results'], parameters['cell']
-    
-    print(f"Processing the chromosome {chrom} for {cell}")
-    
-    n, coord = select_chrom(chrom, path_data)
-    print(f"Number of coordinates: {n}, Sample coordinates: {coord[:5]}")
-    iterations = int(n / parameters['resolution'])
-    start_iteration = int(parameters['init'] / parameters['resolution'])
-    print(f"Iterations: {iterations}, Start from: {start_iteration}")
-
-    # Initialize arrays to store the results
-    Parallel, Series, Cross, Dim_fractal, r2_fractalfit, N_contacts, clustering = [np.zeros(iterations) for _ in range(7)]
-    
-    for t in range(start_iteration, iterations):
-        n_atoms = int(resolution * (t + 1))
-        coord_cut = coord[:n_atoms]
-        dist, N_contacts[t], index = cached_geom_distance(coord_cut, parameters['cutoff'], parameters['neighbors'])
+    for n_chr, chrom in enumerate(chr_vec):
+        print(chrom)
         
-        try:
-            mat, stats = get_matrix(index, chrom)
-            Parallel[t], Series[t], Cross[t] = normalize_psc(stats, N_contacts[t])
-            Dim_fractal[t], r2_fractalfit[t] = fractal_dimension(mat, plot_fig=0)
-            G = make_graph(index)
-            clustering[t] = nx.average_clustering(G)
-        except Exception as e:
-            print(f'WARNING: NOT ENOUGH CONTACTS FOR ANALYSIS ON {chrom}. Error: {e}')
-    
-    topology_parameters = pd.DataFrame({
-        'Parallel (%)': Parallel, 
-        'Series (%)': Series, 
-        'Cross (%)': Cross, 
-        'N contacts': N_contacts, 
-        'Fractal dimension': Dim_fractal, 
-        'r squared': r2_fractalfit, 
-        'Clustering': clustering
-    })
-    topology_parameters.to_csv(f'{path_results}/Top_parameters_{cell}_{chrom}.csv')
-    
-    return f"Processed {chrom} for {cell}"
+        n, coord= select_chrom(n_chr, path_data)        
+        iterations=np.int(n/parameters['resolution'])
+        start_iteration= np.int(parameters['init']/parameters['resolution'])
+        
+        Parallel=np.zeros(iterations)
+        Series=np.zeros(iterations)
+        Cross=np.zeros(iterations)
+        Dim_fractal=np.zeros(iterations)
+        r2_fractalfit=np.zeros(iterations)
+        N_contacts=np.zeros(iterations)
+        clustering= np.zeros(iterations)
+        
+        for t in range(start_iteration,iterations):
+            
+            n_atoms=np.int(resolution*(t+1))
+            print(n_atoms)
+            coord_cut=coord[0: n_atoms]  
+            dist, N_contacts[t], index=geom_distance(coord_cut, 
+            parameters['cutoff'], parameters['neighbors'])
+             
+            try:
+                
+                mat, stats = get_matrix(index,chrom)
+                Parallel[t], Series[t], Cross[t]=normalize_psc(stats,N_contacts[t])
+                Dim_fractal[t], r2_fractalfit[t]=fractal_dimension(mat, plot_fig=0)
+                G=make_graph(index)
+                clustering[t]= nx.average_clustering(G)
+            except:
+                print('WARNING: NOT ENOUGH CONTACTS FOR ANALYSIS')
+        
+        topology_parameters = {'Parallel (%)':Parallel, 'Series (%)':Series, 
+        'Cross (%)':Cross, 'N contacts': N_contacts,
+        'Fractal dimension':Dim_fractal, 'r squared': r2_fractalfit,
+        'Clustering': clustering}
+        topology_parameters= pd.DataFrame(topology_parameters)
+        topology_parameters.to_csv('{}/Top_parameters_{}_{}.csv'.format(
+            path_results, cell, chrom))
 
-def analyze_cell(cell_id, chrom="a"):
-    r_cutoff = 1.0
-    neighbours = 1
-    resolution = 5
-    start_from = 0
-    base_path_data = '/Users/jialechen/Desktop/PhD/CT/Pang_2022_GenomeBiol_3D/data/pdb/Cell_ID-'
-    path_results = '/Users/jialechen/Desktop/PhD/CT/Pang_2022_GenomeBiol_3D/results/cumulative analysis/'
-    
-    formatted_cell_id = f"{cell_id:02}"  # Ensure the cell ID is properly formatted with leading zeros
-    path_data = f"{base_path_data}{formatted_cell_id}"
-    parameters = {
-        'cutoff': r_cutoff, 
-        'neighbors': neighbours, 
-        'resolution': resolution, 
-        'init': start_from, 
-        'path_results': path_results, 
-        'cell': f"Cell_ID-{formatted_cell_id}"
-    }
-    result = process_chromosome(parameters, path_data, resolution, chrom=chrom)
-    print(result)
+     
+        
+        
+r_cutoff=1.0
+neighbours=1
+n_all_chr=20
+resolution=50
+start_from= 0
+parameters={'cutoff':r_cutoff,'neighbors': neighbours,'N chromosomes': 
+              n_all_chr, 'resolution': resolution, 'init': start_from}
 
-if __name__ == "__main__":
-    start_id = 1
-    end_id = 24
-    chrom = "a"
-    
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(analyze_cell, cell_id, chrom) for cell_id in range(start_id, end_id + 1)]
-        for future in concurrent.futures.as_completed(futures):
-            print(future.result())
+path_data= 'data/pdb/Cell_ID-01'
+path_results= 'results/cumulative analysis/{}'.format(path_data[-10:])       
+        
+main(parameters, path_data,path_results)
