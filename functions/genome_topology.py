@@ -16,37 +16,46 @@ import os
 
 
 #read the pdb
-def open_pdb(filename, path):
-    full_path = os.path.join(path, filename)
-    print(f"Trying to open: {full_path}")  # Debugging print
-    try:
-        return open(full_path, 'r')
-    except FileNotFoundError:
-        print(f"Could not find the file at {full_path}")  # Error print
-        raise FileNotFoundError(f"Could not find the file at {full_path}")
+#read the pdb
+def open_pdb(ID_chr, path):
+    file_string= '{}/chrom{}.pdb'.format(path, ID_chr)
+    #print(file_string)
+    pdb = open(file_string, "r")
+    ind=0
+    for line in pdb:
+        if ind < 0:
+            print(line)
+        else:
+            break
+        ind= ind+1 
+        
+    return pdb 
 
 
 
 
 #retrieve coordinates of the chosen chromosome
 def select_chrom(chrom, path):
-    ID_chr = 'chr ' + chrom
-    pdb_filename = f"chr_{chrom}.pdb"
-    print(f"Accessing: {path}/{pdb_filename}")  # Debugging print
-    pdb = open_pdb(pdb_filename, path)
-    counter = 0
-    coord = []
-    for line in pdb:
-        if line[17:22].strip() != ID_chr:
-            continue
-        x = float(line[31:38])
-        y = float(line[39:46])
-        z = float(line[47:54])
-        coord.append([x, y, z])
-        counter += 1
-    pdb.close()
-    coord = np.array(coord)
-    return counter, coord
+    chr_vec=np.array(['chr a', 'chr b', 'chr c','chr d', 'chr e', 'chr f', 
+    'chr g', 'chr h', 'chr i', 'chr j', 'chr k', 'chr l','chr m', 'chr n',
+    'chr o', 'chr p', 'chr q', 'chr r', 'chr s', 'chr t'])      
+    ID_chr=chr_vec[chrom][4]
+    pdb=open_pdb(ID_chr, path)
+    counter=0
+    coord=[]
+    for line in pdb:        
+        if (line[17:22] != chr_vec[chrom]):
+             break
+        x=float(line[31:38])
+        y=float(line[39:46])
+        z=float(line[47:54])
+        coord.append([x,y,z])
+        counter= counter +1
+    pdb.close()     
+    coord=np.array(coord)
+    
+    
+    return counter, coord 
 
 
 
