@@ -4,6 +4,7 @@ import PIL.Image
 import networkx as nx
 import pandas as pd
 import string
+import concurrent.futures
 import os
 
 from functions.genome_topology import open_pdb
@@ -17,7 +18,7 @@ from functions.genome_topology import normalize_psc
 def main(parameters, path_data, path_results):
     letters = list(string.ascii_lowercase)
     chr_vec = ['chr {}'.format(letter) for letter in letters[:parameters['N chromosomes']]]
-    cell = path_data.split('/')[-2]  # Corrected to remove trailing slash issue
+    cell = path_data.split('/')[-1]  # Corrected to remove trailing slash issue
     print("Analyzing cell:", cell)
     
     for n_chr, chrom in enumerate(chr_vec):
@@ -81,7 +82,7 @@ def main(parameters, path_data, path_results):
 r_cutoff = 1.0
 neighbours = 1
 n_all_chr = 23
-resolution = 500
+resolution = 20
 start_from = 0
 parameters = {
     'cutoff': r_cutoff,
@@ -95,14 +96,18 @@ parameters = {
 base_data_path = '/home/cheetah/jiale/pdb/'
 base_results_path = '/home/cheetah/jiale/results/cumulative analysis/'
 
-# Processing loop
-for i in range(1, 25):  # 25 is exclusive, up to 24
-    cell_id = f"Cell_ID-{i:02}"  # Formats number with leading zeros
-    path_data = os.path.join(base_data_path, cell_id)
-    path_results = os.path.join(base_results_path, cell_id)
-    
-    # Ensure the results directory exists
-    os.makedirs(path_results, exist_ok=True)
-    
-    # Call the main function with the specified parameters and paths
-    main(parameters, path_data, path_results)
+# Thread pool execution
+with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+    futures = []
+    for i in range(1, 25):  # 25 is exclusive, up to 24
+        cell_id = f"Cell_ID-{i:02}"  # Formats number with leading zeros
+        path_data = os.path.join(base_data_path, cell_id)
+        path_results = os.path.join(base_results_path, cell_id)
+         
+        
+        # Submit the task to the thread pool
+        futures.append(executor.submit(main, parameters, path_data, path_results))
+
+    # Wait for all threads to complete
+    for future in concurrent.futures.as_completed(futures):
+        print(future.result()) 
