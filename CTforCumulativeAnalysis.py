@@ -97,7 +97,7 @@ base_data_path = '/home/cheetah/jiale/pdb/'
 base_results_path = '/home/cheetah/jiale/results/cumulative analysis/'
 
 # Thread pool execution
-with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
     futures = []
     for i in range(1, 25):  # 25 is exclusive, up to 24
         cell_id = f"Cell_ID-{i:02}"  # Formats number with leading zeros
