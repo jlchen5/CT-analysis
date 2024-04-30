@@ -20,7 +20,7 @@
      bash run_homer.sh
      ```
 
-
+- We use [CTforCumulativeAnalysis](https://github.com/jlchen5/CT-analysis/blob/main/CTforCumulativeAnalysis.py) to generate the files and as Cumulative_analysis.ipynb input files.
 
 
  
