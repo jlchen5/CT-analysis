@@ -23,5 +23,6 @@
 - We use [CTforCumulativeAnalysis](https://github.com/jlchen5/CT-analysis/blob/main/CTforCumulativeAnalysis.py) to generate the csv files and as [Cumulative_analysis.ipynb](https://github.com/jlchen5/CT-analysis/blob/main/Cumulative_analysis.ipynb) input files.
 
 
- 
+## License
+This package is free software; you can redistribute it and/or modify it under the terms of the [MIT License](https://github.com/jlchen5/CT-analysis/blob/main/LICENSE) as published by the Free Software Foundation; either version 2 of the License or (at your option) any later version.
 
