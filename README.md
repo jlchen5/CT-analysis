@@ -1,8 +1,10 @@
 # CT analysis
 
-- Circuit Topology approach in Cancer research and Immune cells
+- Circuit Topology approach in Cancer Research and Immune cells
 
 - TCGA data of RNA-seq, WGS, scRNA-seq and Hi-C, scHi-c, etc.
+
+- In this repo, based on the single-cell Hi-C data.
 
 ## Steps
 
@@ -21,6 +23,8 @@
      ```
 
 - We use [CTforCumulativeAnalysis](https://github.com/jlchen5/CT-analysis/blob/main/CTforCumulativeAnalysis.py) to generate the csv files and as [Cumulative_analysis.ipynb](https://github.com/jlchen5/CT-analysis/blob/main/Cumulative_analysis.ipynb) input files.
+
+- This script: [Extract_topology](https://github.com/jlchen5/CT-analysis/blob/main/Extract_topology.ipynb) is for extracting the topology information from `pdb` files and we can get more data because the `pdb` files have larger size.
 
 
 ## License
