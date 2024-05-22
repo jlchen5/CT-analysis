@@ -26,6 +26,9 @@
 
 - This script: [Extract_topology](https://github.com/jlchen5/CT-analysis/blob/main/Extract_topology.ipynb) is for extracting the topology information from `pdb` files and we can get more data because the `pdb` files have larger size.
 
+## More details
+If your wanna know more information about this project and progress, please see [Procedure_Circuit_Topology.md](https://github.com/jlchen5/CT-analysis/blob/main/Procedure_Circuit_Topology.md)
+
 
 ## License
 This package is free software; you can redistribute it and/or modify it under the terms of the [MIT License](https://github.com/jlchen5/CT-analysis/blob/main/LICENSE) as published by the Free Software Foundation; either version 2 of the License or (at your option) any later version.
